@@ -40,6 +40,27 @@ def load_markdown_file():
         st.error(f"❌ Error loading file: {str(e)}")
         return None
 
+def extract_opportunity_name(markdown_content):
+    """Extract opportunity name and customer from markdown content"""
+    lines = markdown_content.split('\n')
+    opportunity_name = None
+    customer_name = None
+    
+    for line in lines:
+        if line.startswith('Opportunity:'):
+            opportunity_name = line.replace('Opportunity:', '').strip()
+        elif line.startswith('Customer:'):
+            customer_name = line.replace('Customer:', '').strip()
+    
+    if opportunity_name and customer_name:
+        return f"{opportunity_name} - {customer_name}"
+    elif opportunity_name:
+        return opportunity_name
+    elif customer_name:
+        return f"Opportunity for {customer_name}"
+    else:
+        return "Current Opportunity"
+
 def answer_question(client, markdown_content, question, conversation_history):
     """Use OpenAI to answer questions about the markdown content"""
     
@@ -72,7 +93,7 @@ def answer_question(client, markdown_content, question, conversation_history):
     
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1-nano",
             messages=messages,
             temperature=0.0,
             max_tokens=500
@@ -94,6 +115,10 @@ def main():
     markdown_content = load_markdown_file()
     if not markdown_content:
         st.stop()
+    
+    # Display opportunity name
+    opportunity_name = extract_opportunity_name(markdown_content)
+    st.markdown(f"**{opportunity_name}**")
     
     st.success("✅ Analysis loaded successfully!")
     
